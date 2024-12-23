@@ -4,3 +4,4 @@ schematics/*.bkp
 schematics/.[!.]*
 .devcontainer/*
 src/ui/*.pyc
+src/ui/__pycache__/*
