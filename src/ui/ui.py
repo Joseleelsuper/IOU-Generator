@@ -2,6 +2,7 @@
 This module contains the main UI class for the application.
 """
 
+import datetime
 from tkinter import Tk, Label, Entry, Frame, Toplevel, Button, filedialog, Canvas
 from tkcalendar import Calendar
 from datetime import date, timedelta
@@ -129,7 +130,7 @@ class UI:
     def _open_calendar(self):
         """Open a calendar to select a date."""
         top = Toplevel(self.root)
-        cal = Calendar(top, selectmode="day", date_pattern="dd/MM/yyyy")
+        cal = Calendar(top, selectmode="day", date_pattern="dd/MM/yyyy", mindate = datetime.date.today() + datetime.timedelta(days=7))
         cal.pack(padx=10, pady=10)
 
         def confirm_date():
