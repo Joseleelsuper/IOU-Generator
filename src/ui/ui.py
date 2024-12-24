@@ -52,17 +52,17 @@ class UI:
         self.root.columnconfigure(0, weight=1)
 
         # Título y autor.
-        self.label = Label(
+        self.label = Label( 
             self.main_frame, text="Pagaré Generator", font=(FONT, TAM_FONT_TITLE)
         )
         self.label.grid(
-            row=0, column=0, columnspan=3, pady=PADDING_TITLES_Y, padx=PADDING_TITLES_X
+            row=0, column=0, columnspan=3, pady=PADDING_TITLES_Y, padx=PADDING_TITLES_X, sticky="n"
         )
         self.sub_label = Label(
             self.main_frame, text="by José Gallardo", font=(FONT, TAM_FONT)
         )
         self.sub_label.grid(
-            row=1, column=0, columnspan=3, pady=PADDING_TITLES_Y, padx=PADDING_TITLES_X
+            row=1, column=0, columnspan=3, pady=PADDING_TITLES_Y, padx=PADDING_TITLES_X, sticky="n"
         )
 
         # Nombre del Prestamista
