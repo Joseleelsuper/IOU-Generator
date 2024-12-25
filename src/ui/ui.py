@@ -3,6 +3,8 @@ This module contains the main UI class for the application.
 """
 
 import datetime
+import os
+import subprocess
 from tkinter import (
     OptionMenu,
     StringVar,
@@ -17,6 +19,7 @@ from tkinter import (
 )
 from tkcalendar import Calendar
 from datetime import date, timedelta
+from PIL import Image, ImageDraw
 
 PADDING_TITLES_Y = 1
 PADDING_TITLES_Y = 1
@@ -31,7 +34,7 @@ TAM_FONT = 16
 
 
 class UI:
-    def __init__(self, tamx: int = 860, tamy: int = 680):
+    def __init__(self, tamx: int = 1280, tamy: int = 680):
         """Initialize the UI class.
 
         Args:
@@ -52,17 +55,27 @@ class UI:
         self.root.columnconfigure(0, weight=1)
 
         # Título y autor.
-        self.label = Label( 
+        self.label = Label(
             self.main_frame, text="Pagaré Generator", font=(FONT, TAM_FONT_TITLE)
         )
         self.label.grid(
-            row=0, column=0, columnspan=3, pady=PADDING_TITLES_Y, padx=PADDING_TITLES_X, sticky="n"
+            row=0,
+            column=1,
+            columnspan=3,
+            pady=PADDING_TITLES_Y,
+            padx=PADDING_TITLES_X,
+            sticky="n",
         )
         self.sub_label = Label(
             self.main_frame, text="by José Gallardo", font=(FONT, TAM_FONT)
         )
         self.sub_label.grid(
-            row=1, column=0, columnspan=3, pady=PADDING_TITLES_Y, padx=PADDING_TITLES_X, sticky="n"
+            row=1,
+            column=1,
+            columnspan=3,
+            pady=PADDING_TITLES_Y,
+            padx=PADDING_TITLES_X,
+            sticky="n",
         )
 
         # Nombre del Prestamista
@@ -99,6 +112,30 @@ class UI:
         )
         self.draw_sign_button.pack(side="left")
 
+        # DNI del Prestamista
+        self.lender_dni_label = Label(
+            self.main_frame, text="DNI del Prestamista:", font=(FONT, TAM_FONT)
+        )
+        self.lender_dni_label.grid(
+            row=2, column=4, padx=PADDING_X, pady=PADDING_LABELS_Y, sticky="w"
+        )
+        self.lender_dni_entry = Entry(self.main_frame, font=(FONT, TAM_FONT))
+        self.lender_dni_entry.grid(
+            row=3, column=4, padx=PADDING_X, pady=PADDING_ENTRYS_Y, sticky="w"
+        )
+
+        # Domicilio del Prestamista
+        self.lender_address_entry = Label(
+            self.main_frame, text="Domicilio del Prestamista:", font=(FONT, TAM_FONT)
+        )
+        self.lender_address_entry.grid(
+            row=6, column=4, padx=PADDING_X, pady=PADDING_LABELS_Y, sticky="w"
+        )
+        self.lender_address_entry = Entry(self.main_frame, font=(FONT, TAM_FONT))
+        self.lender_address_entry.grid(
+            row=7, column=4, padx=PADDING_X, pady=PADDING_ENTRYS_Y, sticky="w"
+        )
+
         # Nombre del Beneficiario
         self.debtor_label = Label(
             self.main_frame, text="Beneficiario:", font=(FONT, TAM_FONT)
@@ -132,6 +169,30 @@ class UI:
             self.debtor_sign_frame, text="✏️", command=self._open_paint
         )
         self.draw_sign_button.pack(side="left")
+
+        # DNI del Beneficiario
+        self.debtor_dni_label = Label(
+            self.main_frame, text="DNI del Beneficiario:", font=(FONT, TAM_FONT)
+        )
+        self.debtor_dni_label.grid(
+            row=4, column=4, padx=PADDING_X, pady=PADDING_LABELS_Y, sticky="w"
+        )
+        self.debtor_dni_entry = Entry(self.main_frame, font=(FONT, TAM_FONT))
+        self.debtor_dni_entry.grid(
+            row=5, column=4, padx=PADDING_X, pady=PADDING_ENTRYS_Y, sticky="w"
+        )
+
+        # Domicilio del Beneficiario
+        self.debtor_address_label = Label(
+            self.main_frame, text="Domicilio del Beneficiario:", font=(FONT, TAM_FONT)
+        )
+        self.debtor_address_label.grid(
+            row=8, column=4, padx=PADDING_X, pady=PADDING_LABELS_Y, sticky="w"
+        )
+        self.debtor_address_entry = Entry(self.main_frame, font=(FONT, TAM_FONT))
+        self.debtor_address_entry.grid(
+            row=9, column=4, padx=PADDING_X, pady=PADDING_ENTRYS_Y, sticky="w"
+        )
 
         # Cantidad de dinero prestada
         self.money_label = Label(
@@ -197,6 +258,16 @@ class UI:
         )
         self.euro_symbol_label.pack(side="left")
 
+        # Ciudad
+        self.city_label = Label(self.main_frame, text="Ciudad:", font=(FONT, TAM_FONT))
+        self.city_label.grid(
+            row=8, column=2, padx=PADDING_X, pady=PADDING_LABELS_Y, sticky="w"
+        )
+        self.city_entry = Entry(self.main_frame, font=(FONT, TAM_FONT))
+        self.city_entry.grid(
+            row=9, column=2, padx=PADDING_X, pady=PADDING_ENTRYS_Y, sticky="w"
+        )
+
         # Lugar de devolución
         self.place_label = Label(
             self.main_frame, text="Lugar de devolución:", font=(FONT, TAM_FONT)
@@ -231,7 +302,37 @@ class UI:
         )
 
     def _generate_iou(self):
-        pass
+        """Generate the IOU PDF with the current form data."""
+        from src.pdf_generator import IOUGenerator
+
+        data = {
+            "lender": self.lender_entry.get(),
+            "lender_signature": self.lender_sign_entry.get(),
+            "lender_dni": self.lender_dni_entry.get(),
+            "lender_address": self.lender_address_entry.get(),
+            "debtor": self.debtor_entry.get(),
+            "debtor_signature": self.debtor_sign_entry.get(),
+            "debtor_dni": self.debtor_dni_entry.get(),
+            "debtor_address": self.debtor_address_entry.get(),
+            "amount": self.money_entry.get(),
+            "due_date": self.date_entry.get(),
+            "interest": self.interest_entry.get(),
+            "city": self.city_entry.get(),
+            "payment_place": self.place_entry.get(),
+        }
+
+        generator = IOUGenerator()
+        pdf = generator.generate_iou(data)
+
+        # Save the PDF
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+            title="Guardar Pagaré",
+        )
+
+        if file_path:
+            pdf.output(file_path)
 
     def _open_calendar(self):
         """Open a calendar to select a date."""
@@ -272,9 +373,44 @@ class UI:
         canvas.bind("<B1-Motion>", paint)
 
         def confirm_sign():
-            canvas.postscript(file="./signatures/signature_prest.eps")
+            # Crear directorio signatures si no existe
+            if not os.path.exists("./signatures"):
+                os.makedirs("./signatures")
+
+            # Guardar el canvas como PNG
+            # Primero guardamos en PostScript
+            ps_path = "./signatures/temp.ps"
+            canvas.postscript(file=ps_path)
+
+            # Convertir PS a PNG usando PIL
+            try:
+                # Intentar usar Ghostscript para la conversión
+                subprocess.run(
+                    [
+                        "gswin64c",
+                        "-dSAFER",
+                        "-dBATCH",
+                        "-dNOPAUSE",
+                        "-sDEVICE=pngalpha",
+                        "-r300",
+                        "-sOutputFile=./signatures/signature.png",
+                        ps_path,
+                    ]
+                )
+                png_path = "./signatures/signature.png"
+            except Exception:
+                # Si falla, crear una imagen en blanco con el texto "Firma"
+                img = Image.new("RGB", (300, 100), "white")
+                ImageDraw.Draw(img).text((150, 50), "Firma", fill="black")
+                png_path = "./signatures/signature.png"
+                img.save(png_path)
+
+            # Limpiar archivo temporal
+            if os.path.exists(ps_path):
+                os.remove(ps_path)
+
             self.lender_sign_entry.delete(0, "end")
-            self.lender_sign_entry.insert(0, "signature.eps")
+            self.lender_sign_entry.insert(0, png_path)
             top.destroy()
 
         Button(top, text="Ok", command=confirm_sign).pack(pady=5)
