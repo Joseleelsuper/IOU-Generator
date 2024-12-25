@@ -1,0 +1,4 @@
+tkcalendar==1.6.1
+fpdf==1.7.2
+Pillow==11.0.0
+pyinstaller==6.11.1

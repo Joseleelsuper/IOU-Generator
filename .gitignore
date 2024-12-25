@@ -2,3 +2,8 @@ signatures/*
 schematics/*.drawio
 schematics/*.bkp
 schematics/.[!.]*
+.devcontainer/*
+src/ui/*.pyc
+src/ui/__pycache__/*
+/IOU_Generator.spec
+/build
